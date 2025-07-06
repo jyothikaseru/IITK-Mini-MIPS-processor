@@ -1,0 +1,46 @@
+.data
+array:    .word 5, 3, 8, 6, 2, 9, 1, 4
+n:        .word 8
+
+.text
+.globl main
+main:
+    la $t0, array     # $t0 = base address of array
+    lw $t1, n         # $t1 = number of elements
+    addi $t2, $t1, -1 # $t2 = n-1
+
+outer_loop:
+    li $t3, 0         # i = 0
+
+outer_loop_check:
+    bge $t3, $t2, done
+    li $t4, 0         # j = 0
+
+inner_loop:
+    sub $t5, $t1, $t3
+    addi $t5, $t5, -1 # limit = n-i-1
+    bge $t4, $t5, increment_outer
+
+    # Load array[j] and array[j+1]
+    la $t6, array
+    sll $t7, $t4, 2       # offset = j * 4
+    add $t8, $t6, $t7
+    lw $t9, 0($t8)        # array[j]
+    lw $s0, 4($t8)        # array[j+1]
+
+    # Compare and swap if needed
+    ble $t9, $s0, no_swap
+    sw $s0, 0($t8)        # swap
+    sw $t9, 4($t8)
+
+no_swap:
+    addi $t4, $t4, 1
+    j inner_loop
+
+increment_outer:
+    addi $t3, $t3, 1
+    j outer_loop_check
+
+done:
+    li $v0, 10
+    syscall
